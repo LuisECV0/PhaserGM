@@ -17,32 +17,72 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
+var player;
 var platforms;
+var cursors;
 
 function preload() {
-    // Cargar las imágenes desde URLs en línea
-    this.load.image('sky', './assets/BG.png'); // Fondo
-    this.load.image('ground', './assets/Skeleton.png'); // Plataforma
-    this.load.image('star', './assets/Tree.png'); // Estrella
-    this.load.image('bomb', 'https://examples.phaser.io/assets/sprites/bomb.png'); // Bomba
+    this.load.image('sky', './assets/BG.png'); 
+    this.load.image('ground', './assets/platform.png'); 
+    this.load.image('star', './assets/Tree.png'); 
+    this.load.image('bomb', './assets/Skeleton.png'); 
     this.load.spritesheet('dude', 
-        'https://examples.phaser.io/assets/sprites/phaser-dude.png', 
-        { frameWidth: 32, frameHeight: 48 } // Hoja de sprites
+        './assets/dude.png', 
+        { frameWidth: 32, frameHeight: 48 } 
     );
 }
 
-
 function create() {
     this.add.image(400, 300, 'sky'); 
+
     platforms = this.physics.add.staticGroup();
     platforms.create(400, 568, 'ground').setScale(2).refreshBody();
     platforms.create(600, 400, 'ground');
     platforms.create(50, 250, 'ground');
     platforms.create(750, 220, 'ground');
 
-    this.add.image(400, 300, 'star');
+    player = this.physics.add.sprite(100, 450, 'dude');
+    player.setBounce(0.2);
+    player.setCollideWorldBounds(true);
+
+    this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'turn',
+        frames: [ { key: 'dude', frame: 4 } ],
+        frameRate: 20
+    });
+
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    this.physics.add.collider(player, platforms);
+
+    cursors = this.input.keyboard.createCursorKeys();
 }
 
 function update() {
-
+    if (cursors.left.isDown) {
+        player.setVelocityX(-160);
+        player.anims.play('left', true);
+    } else if (cursors.right.isDown) {
+        player.setVelocityX(160);
+        player.anims.play('right', true);
+    } else {
+        player.setVelocityX(0);
+        player.anims.play('turn');
+    }
+    
+    if (cursors.up.isDown && player.body.touching.down) {
+        player.setVelocityY(-330);
+    }
 }
